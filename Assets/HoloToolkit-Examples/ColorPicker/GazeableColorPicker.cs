@@ -1,8 +1,11 @@
-﻿using HoloToolkit.Unity.InputModule;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using HoloToolkit.Unity.InputModule;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Lighthouse
+namespace HoloToolkit.Examples.ColorPicker
 {
     public class GazeableColorPicker : MonoBehaviour, IFocusable, IInputClickHandler
     {
@@ -16,18 +19,20 @@ namespace Lighthouse
 
         private bool gazing = false;
 
-        void Update()
+        private void Update()
         {
             if (gazing == false) return;
             UpdatePickedColor(OnGazedColor);
         }
 
-        void UpdatePickedColor(PickedColorCallback cb)
+        private void UpdatePickedColor(PickedColorCallback cb)
         {
             RaycastHit hit = GazeManager.Instance.HitInfo;
-            if (hit.transform.gameObject != rendererComponent.gameObject) return;
-            
-            Texture2D texture = rendererComponent.material.mainTexture as Texture2D;
+
+            if (hit.transform.gameObject != rendererComponent.gameObject) { return; }
+
+            var texture = (Texture2D)rendererComponent.material.mainTexture;
+
             Vector2 pixelUV = hit.textureCoord;
             pixelUV.x *= texture.width;
             pixelUV.y *= texture.height;
@@ -46,7 +51,7 @@ namespace Lighthouse
             gazing = false;
         }
 
-        public void OnInputClicked(InputEventData eventData)
+        public void OnInputClicked(InputClickedEventData eventData)
         {
             UpdatePickedColor(OnPickedColor);
         }

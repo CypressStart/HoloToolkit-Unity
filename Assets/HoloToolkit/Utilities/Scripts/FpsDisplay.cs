@@ -2,28 +2,38 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace HoloToolkit.Unity
 {
     /// <summary>
     /// Simple Behaviour which calculates the average frames per second over a number of frames and shows the FPS in a referenced Text control.
     /// </summary>
-    [RequireComponent(typeof(TextMesh))]
     public class FpsDisplay : MonoBehaviour
     {
-        [Tooltip("Reference to Text UI control where the FPS should be displayed.")]
+        /// <summary>
+        /// Reference to TextMesh component where the FPS should be displayed.
+        /// </summary>
+        [Tooltip("Reference to TextMesh component where the FPS should be displayed.")]
         [SerializeField]
         private TextMesh textMesh;
 
-        [Tooltip("Reference to 3DText UI control where the FPS should be displayed.")]
+        /// <summary>
+        /// Reference to uGUI text component where the FPS should be displayed.
+        /// </summary>
+        [Tooltip("Reference to uGUI text component where the FPS should be displayed.")]
         [SerializeField]
-        private TextMesh text3D;
+        private Text uGUIText;
 
+        /// <summary>
+        /// How many frames should we consider into our average calculation?
+        /// </summary>
         [Tooltip("How many frames should we consider into our average calculation?")]
         [SerializeField]
+        [Range(1, 300)]
         private int frameRange = 60;
 
-        private int averageFps { get; set; }
+        private int averageFps;
 
         private int[] fpsBuffer;
         private int fpsBufferIndex;
@@ -42,24 +52,35 @@ namespace HoloToolkit.Unity
             "90", "91", "92", "93", "94", "95", "96", "97", "98", "99"
         };
 
+        private void Start()
+        {
+            InitBuffer();
+        }
+
         private void Update()
         {
-            if (fpsBuffer == null || fpsBuffer.Length != frameRange || textMesh == null)
-            {
-                InitBuffer();
-            }
-
             UpdateFrameBuffer();
             CalculateFps();
 
             UpdateTextDisplay(averageFps);
         }
 
+        /// <summary>
+        /// Initializes the frame timing buffer and gets attached text components.
+        /// </summary>
         private void InitBuffer()
         {
-            textMesh = GetComponent<TextMesh>();
+            if (textMesh == null)
+            {
+                textMesh = GetComponent<TextMesh>();
+            }
 
-            if(frameRange <= 0)
+            if (uGUIText == null)
+            {
+                uGUIText = GetComponent<Text>();
+            }
+
+            if (frameRange <= 0)
             {
                 frameRange = 1;
             }
@@ -68,6 +89,10 @@ namespace HoloToolkit.Unity
             fpsBufferIndex = 0;
         }
 
+        /// <summary>
+        /// Updates the available text components to display the calculated frame rate.
+        /// </summary>
+        /// <param name="fps">The currently calculated FPS.</param>
         private void UpdateTextDisplay(int fps)
         {
             string displayString = StringsFrom00To99[Mathf.Clamp(fps, 0, 99)];
@@ -76,27 +101,34 @@ namespace HoloToolkit.Unity
             {
                 textMesh.text = displayString;
             }
-            if (text3D != null)
+
+            if (uGUIText != null)
             {
-                text3D.text = displayString;
+                uGUIText.text = displayString;
             }
         }
 
+        /// <summary>
+        /// Updates the contents of the frame timing buffer.
+        /// </summary>
         private void UpdateFrameBuffer()
         {
-            fpsBuffer[fpsBufferIndex++] = (int)(1f/Time.unscaledDeltaTime);
+            fpsBuffer[fpsBufferIndex++] = (int)(1f / Time.unscaledDeltaTime);
 
-            if(fpsBufferIndex >= frameRange)
+            if (fpsBufferIndex >= frameRange)
             {
                 fpsBufferIndex = 0;
             }
         }
 
+        /// <summary>
+        /// Calculates the frame rate from the frame timing buffer.
+        /// </summary>
         private void CalculateFps()
         {
             int sum = 0;
 
-            for(int i = 0; i < frameRange; i++)
+            for (int i = 0; i < frameRange; i++)
             {
                 int fps = fpsBuffer[i];
                 sum += fps;
